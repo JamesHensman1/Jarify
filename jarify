@@ -1,0 +1,35 @@
+#!/bin/bash
+j='.jar'
+manif="/tmp/manif"
+
+if [ $# -ne 1 ]; then
+    echo "Invalid format: jarify <file.class>" 1>&2
+    exit
+fi
+if [ ! -f "$1" ]; then
+    echo "File $1 Does not exist, please check the file exists before trying agian" 1>&2
+    exit
+fi
+
+IFS='.'
+read -ra arr <<< $1
+IFS=''
+unset arr[-1]
+
+if [ ${#arr[@]} -eq 0 ]; then
+    echo "Main-Class: $1" > $manif
+    str="$1.jar"
+else
+    str="${arr[0]}"
+    unset arr[0]
+    for e in "${arr[@]}"; do
+        str="$str.$e"
+    done
+    echo "Main-Class: $str" > $manif
+    str="$str$j"
+fi
+echo $str
+
+jar -cfm $str $manif $1; chmod +x $str || echo "Error, please ensure the file you are using is valid" 2>&1
+
+ rm $manif 2>/dev/null
